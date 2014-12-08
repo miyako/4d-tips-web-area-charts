@@ -1,0 +1,120 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+		
+		<title>Chart</title>
+		
+		<style>
+			html	{ height: 100% }
+			body	{ height: 100%; margin: 0; padding: 0 }
+			canvas	{ display:block; } 
+		</style>
+		
+		<script src="scripts/chart.js"></script>
+		
+		<script>
+			
+			function init() {
+				
+				var canvas = document.getElementById('canvas');
+				
+				canvas.width = window.innerWidth;
+				canvas.height = window.innerHeight;
+			}	
+				
+			function clear() {
+			
+				var canvas = document.getElementById('canvas');
+				var context = canvas.getContext('2d');
+				
+				context.clearRect(0, 0, canvas.width, canvas.height);
+			}			
+										
+			function invokeObjectMethod(id,path) {
+			
+				window.location = "webarea://" + id + "/" + path;
+				
+			}
+			
+			function createChart(type,data,options) {
+				
+				init();		
+				
+				if (typeof data === 'string'){
+					data = JSON.parse(data);
+				}						
+				
+				if (typeof options === 'string'){
+					options = JSON.parse(options);
+				}	
+					
+				options.onAnimationComplete = function(){
+				
+					var canvas = document.getElementById('canvas');
+					
+					if(typeof $4d !== 'undefined') {
+						
+						$4d.Chart_onload(canvas.toDataURL("image/png"));
+						
+					}else{
+					
+						window.location = "webarea://canvas/onload/" + canvas.toDataURL("image/png");
+					
+					}				
+				
+				};		
+			
+				var chart = new Chart(document.getElementById("canvas").getContext("2d"))[type](data,options);
+				
+			}
+			
+			function drop(id,e){
+			
+				if(typeof window.FileReader === 'undefined')
+				{
+					invokeObjectMethod(id,'ondrop');
+					
+				}else{
+				
+					var files = e.dataTransfer.files;
+					
+					var reader = new FileReader();
+					
+					reader.onload = function (e) {
+						window.location = "webarea://" + id + "/ondrop/" + e.target.result;
+					}
+					
+					for (var i = 0; i < files.length; i++) {
+						
+						reader.readAsDataURL(files[i]);
+						
+					}
+				
+				}
+			
+			}
+			
+		</script>
+		
+	</head>
+	
+	<body 
+		onload="init();invokeObjectMethod('body','onload');"
+		ondragstart="return false;"
+		ondragleave="return false;"
+		ondragover="return false;"
+		ondrop="return false;"> 
+		
+		<canvas 
+			id="canvas"
+			ondragstart="return false;"
+			ondragleave="return false;"
+			ondragover="return false;"
+			ondrop="drop('canvas',event);return false;"/>
+
+	</body>
+	
+</html>

@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+		
+		<title>Chart</title>
+		
+		<style>
+			html	{ height: 100% }
+			body	{ height: 100%; margin: 0; padding: 0 }
+			#canvas	{ display:block; } 
+		</style>
+		
+		<script src="scripts/jquery.min.js"></script>
+		<script src="scripts/highcharts.js"></script>
+		<script src="scripts/modules/exporting.js"></script><!--need this for getSVG()-->
+		<script src="scripts/base64.js"></script>
+		
+		<script>
+			
+			function invokeObjectMethod(id,path) {
+			
+				window.location = "webarea://" + id + "/" + path;
+				
+			}
+			
+			function createChart(data,fn) {
+				
+				clear();						
+									
+				if (typeof data === 'string'){
+					data = JSON.parse(data);
+				}
+																																						
+				var chart = new Highcharts.Chart(data, function(event){
+					
+					//otherwise, infinite loop
+					event.callback = null;
+					//now we are ready to reference event without fear of infinite loop
+					var svg = event.getSVG();
+					
+					if(typeof $4d !== 'undefined') {
+						
+						$4d.Chart_onload(svg);
+						
+					}else{
+					
+						var url = "data:image/svg;base64,";
+						url += B64.encode(svg);						
+						window.location = "webarea://canvas/onload/" + url;
+					
+					}
+					
+				});
+				
+			}
+			
+			function clear() {
+			
+				var chart = $('#canvas').highcharts();
+				
+				if(chart)
+					chart.destroy();
+			}
+			
+			function drop(id,e){
+			
+				if(typeof window.FileReader === 'undefined')
+				{
+					invokeObjectMethod(id,'ondrop');
+					
+				}else{
+				
+					var files = e.dataTransfer.files;
+					
+					var reader = new FileReader();
+					
+					reader.onload = function (e) {
+						window.location = "webarea://" + id + "/ondrop/" + e.target.result;
+					}
+					
+					for (var i = 0; i < files.length; i++) {
+						
+						reader.readAsDataURL(files[i]);
+						
+					}
+				
+				}
+			
+			}
+			
+		</script>
+		
+	</head>
+	
+	<body 
+		onload="invokeObjectMethod('body','onload');"
+		ondragstart="return false;"
+		ondragleave="return false;"
+		ondragover="return false;"
+		ondrop="drop('canvas',event);return false;"> 
+		
+		<div 
+			id="canvas"
+			ondragstart="return false;"
+			ondragleave="return false;"
+			ondragover="return false;"
+			ondrop="return false;"/>
+
+	</body>
+	
+</html>
